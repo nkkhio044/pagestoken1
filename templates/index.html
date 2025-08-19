@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Facebook Page Token Extractor</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #4267B2, #1c1e21);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    .logo {
+      margin-bottom: 20px;
+    }
+
+    .logo img {
+      max-width: 90px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 25px;
+      color: #4267B2;
+    }
+
+    input {
+      padding: 12px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 15px;
+    }
+
+    button {
+      padding: 12px 20px;
+      width: 100%;
+      border: none;
+      background: #4267B2;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #365899;
+    }
+
+    .tokens {
+      margin-top: 20px;
+      text-align: left;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .token-box {
+      background: #f5f6f7;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border-left: 4px solid #4267B2;
+      font-size: 14px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <!-- 🔹 Yaha apna logo dal sakta hai -->
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Logo">
+    </div>
+    <h1>Facebook Page Token Extractor</h1>
+
+    <input type="text" id="user_token" placeholder="Enter your Facebook User Token">
+    <button onclick="getTokens()">Get Page Tokens</button>
+
+    <div id="result" class="tokens"></div>
+  </div>
+
+  <script>
+    async function getTokens() {
+      const token = document.getElementById("user_token").value.trim();
+      if (!token) {
+        alert("Please enter your User Token");
+        return;
+      }
+
+      const res = await fetch("/get_page_tokens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_token: token })
+      });
+
+      const data = await res.json();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+
+      if (data.error) {
+        resultDiv.innerHTML = `<p style="color:red;">${data.error}</p>`;
+      } else {
+        data.page_tokens.forEach(page => {
+          const div = document.createElement("div");
+          div.className = "token-box";
+          div.innerHTML = `<b>${page.name}</b><br><small>${page.access_token}</small>`;
+          resultDiv.appendChild(div);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
