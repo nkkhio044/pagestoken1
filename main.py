@@ -4,8 +4,8 @@ import requests, os
 app = Flask(__name__)
 
 # ⚡ Yaha apna App ID & Secret dal de
-APP_ID = "YOUR_APP_ID"
-APP_SECRET = "YOUR_APP_SECRET"
+APP_ID = "735353295969594"
+APP_SECRET = "f9605f1e356cb82063695b1ae351da51"
 
 @app.route("/")
 def home():
@@ -53,3 +53,4 @@ def get_page_tokens():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
+
