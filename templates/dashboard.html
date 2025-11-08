@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="hi">
+<head>
+    <title>ЁЯМР Aryan's Web Host | Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        button {
+            padding: 6px 10px;
+            margin: 2px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-size: 13px;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .status-running { background-color: #28a745; }
+        .status-stopped { background-color: #6c757d; }
+        .status-crashed, .status-requires_install, .status-expired { background-color: #dc3545; }
+        .status-deploying { background-color: #ffc107; color: #333;}
+        .status-ready { background-color: #17a2b8; }
+        .btn-stop { background-color: #dc3545; }
+        .btn-start { background-color: #007bff; }
+        .btn-delete { background-color: #343a40; }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #777;
+        }
+        .error-msg {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>ЁЯУК Aryan's Web Host | Dashboard</h1>
+
+    <p><a href="{{ url_for('index') }}" style="font-weight: bold; color: #28a745;">тЮХ New App Deploy / Packages Install</a></p>
+
+    <hr>
+
+    <h2>тЪЩя╕П рдпреВрдЬрд╝рд░ рдПрдирд╡рд╛рдпрд░рдирдореЗрдВрдЯ рд╕реНрдЯреЗрдЯрд╕ (VENV Status)</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>VENV Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for user, status in user_envs.items() %}
+            <tr>
+                <td>{{ user }}</td>
+                <td>
+                    <span class="status-{% if status == 'Ready' %}ready{% else %}crashed{% endif %}" style="padding: 5px; border-radius: 4px;">
+                        {{ status }}
+                    </span>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>ЁЯЪА рдбрд┐рдкреНрд▓реЙрдпрдб рдРрдкреНрд╕ (Apps Status)</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name / ID</th>
+                <th>Username</th>
+                <th>Port</th>
+                <th>Status</th>
+                <th>Website URL (6-Month Host)</th>
+                <th>Expires On</th>
+                <th>Last Error</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for app in apps %}
+            <tr>
+                <td>{{ app.name }} ({{ app.id[:8] }})</td>
+                <td>{{ app.username }}</td>
+                <td>{{ app.port }}</td>
+                <td>
+                    <span class="status-{{ app.status }}" style="padding: 5px; border-radius: 4px;">
+                        {{ app.status|upper }}
+                    </span>
+                </td>
+                <td>
+                    {% if app.status == 'running' %}
+                        <a href="{{ app.local_url }}" target="_blank">**{{ app.local_url }}**</a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ app.expires_at[:10] }}</td>
+                <td>
+                    {% if app.last_error %}
+                        <span class="error-msg">{{ app.last_error }}</span>
+                    {% else %}
+                        None
+                    {% endif %}
+                </td>
+                <td>
+                    {% if app.status == 'running' %}
+                        <form method="POST" action="{{ url_for('route_stop', app_id=app.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-stop">Stop</button>
+                        </form>
+                    {% elif app.status in ['stopped', 'crashed', 'start_failed', 'requires_install'] %}
+                        <form method="POST" action="{{ url_for('route_start', app_id=app.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-start">Start</button>
+                        </form>
+                    {% endif %}
+                    <a href="{{ url_for('route_logs', app_id=app.id) }}" target="_blank" style="margin-left: 5px; background-color: #ffc107; padding: 6px 10px; border-radius: 4px; color: #333;">Logs</a>
+                    <form method="POST" action="{{ url_for('route_delete', app_id=app.id) }}" style="display:inline; margin-left: 5px;">
+                        <button type="submit" class="btn-delete" onclick="return confirm('рдХреНрдпрд╛ рдЖрдк рд╡рд╛рдХрдИ рдЗрд╕реЗ рд╣рдЯрд╛рдирд╛ рдЪрд╛рд╣рддреЗ рд╣реИрдВ?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Made by Aryan
+    </div>
+</div>
+
+</body>
+  </html>
